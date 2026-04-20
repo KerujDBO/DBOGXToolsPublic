@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>DBO Galaxy Skill Calculator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg:         #0f0f23;
+            --surface:    #1a1a2e;
+            --surface2:   #151528;
+            --header-bg:  #0b0b1d;
+            --accent:     #f4a623;
+            --accent-dim: rgba(244,166,35,0.12);
+            --accent-bdr: rgba(244,166,35,0.38);
+            --text:       #d4d4ec;
+            --text-mid:   #6e6e96;
+            --text-dim:   rgba(255,255,255,0.17);
+            --bdr:        rgba(255,255,255,0.07);
+            --bdr-hi:     rgba(255,255,255,0.13);
+            --c-red:    #c84040;
+            --c-blue:   #3a6fd8;
+            --c-green:  #2ea84e;
+            --c-orange: #d87020;
+            --c-purple: #8844cc;
+            --c-yellow: #c8a820;
+            --c-grey:   #5a5a78;
+            --c-red-bg:    rgba(200,64,64,0.22);
+            --c-blue-bg:   rgba(58,111,216,0.22);
+            --c-green-bg:  rgba(46,168,78,0.22);
+            --c-orange-bg: rgba(216,112,32,0.22);
+            --c-purple-bg: rgba(136,68,204,0.22);
+            --c-yellow-bg: rgba(200,168,32,0.22);
+            --c-grey-bg:   rgba(90,90,120,0.22);
+        }
+
+        body { background: var(--bg); font-family: 'Segoe UI', system-ui, sans-serif; color: var(--text); min-height: 100vh; }
+
+        .app-header {
+            position: sticky; top: 0; z-index: 200;
+            background: var(--header-bg);
+            border-bottom: 1px solid rgba(244,166,35,0.13);
+            padding: 0 22px;
+            display: flex; align-items: center; height: 52px; gap: 14px;
+            box-shadow: 0 2px 22px rgba(0,0,0,0.55);
+        }
+        .logo { font-size: 17px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); flex-shrink: 0; }
+        .logo-sep { color: rgba(255,255,255,0.11); font-weight: 300; font-size: 18px; margin: 0 1px; }
+        .logo-sub { font-size: 10px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; flex-shrink: 0; }
+        .hgap { flex: 1; }
+        .sp-badge {
+            display: flex; align-items: center; gap: 6px;
+            padding: 5px 14px; border-radius: 7px;
+            background: var(--accent-dim); border: 1px solid var(--accent-bdr); flex-shrink: 0;
+        }
+        .sp-badge .sp-num { font-size: 14px; font-weight: 700; color: var(--accent); }
+        .sp-badge .sp-label { font-size: 10px; color: var(--text-mid); letter-spacing: 1px; text-transform: uppercase; }
+        .lv-pill { font-size: 11px; color: var(--text-dim); border: 1px solid var(--bdr); border-radius: 6px; padding: 4px 10px; flex-shrink: 0; }
+        .hbtn {
+            height: 32px; padding: 0 14px; border-radius: 7px;
+            border: 1px solid var(--bdr-hi); background: transparent;
+            color: var(--text-mid); font-family: inherit; font-size: 11px; font-weight: 600;
+            cursor: pointer; transition: all 0.14s; display: flex; align-items: center;
+            gap: 5px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;
+        }
+        .hbtn:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+        .hbtn.share { border-color: rgba(70,110,210,0.35); color: #6699dd; }
+        .hbtn.share:hover { background: rgba(70,110,210,0.08); color: #88bbee; }
+        .hbtn.reset { border-color: rgba(200,60,60,0.38); color: #cc5555; }
+        .hbtn.reset:hover { background: rgba(200,60,60,0.08); color: #dd7777; }
+        .lang-select {
+            height: 32px; padding: 0 8px; border-radius: 7px;
+            border: 1px solid var(--bdr-hi); background: var(--surface);
+            color: var(--text-mid); font-family: inherit; font-size: 11px; font-weight: 600;
+            cursor: pointer; transition: all 0.14s; flex-shrink: 0;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            -webkit-appearance: none; appearance: none; text-align: center;
+        }
+        .lang-select:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+        .lang-select option { background: #1a1a1e; color: var(--text); }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+        .controls-panel { background: var(--surface); border-bottom: 1px solid var(--bdr); margin-bottom: 0; width: 100%; }
+
+        .picker-section-label {
+            font-size: 9px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase;
+            color: var(--text-dim); flex-shrink: 0; min-width: 72px; padding-right: 10px;
+        }
+        .picker-vsep { width: 1px; height: 20px; background: var(--bdr); flex-shrink: 0; margin-right: 6px; }
+        .picker-item {
+            display: flex; align-items: center; gap: 7px; padding: 5px 11px;
+            border-radius: 7px; border: 1px solid transparent; cursor: pointer;
+            transition: all 0.14s; flex-shrink: 0; margin: 0 2px;
+        }
+        .picker-item:hover { background: rgba(255,255,255,0.04); border-color: var(--bdr-hi); }
+        .picker-item.selected { background: var(--accent-dim); border-color: var(--accent-bdr); }
+        .picker-item.selected span { color: var(--accent); }
+        .picker-item img { width: 24px; height: 24px; object-fit: contain; border-radius: 4px; flex-shrink: 0; }
+        .picker-item span { color: var(--text-mid); font-size: 12px; white-space: nowrap; }
+
+        .unified-picker { display: flex; align-items: flex-start; padding: 6px 22px; overflow-x: auto; scrollbar-width: none; }
+        .unified-picker::-webkit-scrollbar { display: none; }
+        .unified-picker-labels { display: flex; flex-direction: column; flex-shrink: 0; padding-top: 4px; gap: 0; }
+        .unified-picker-labels .picker-section-label { display: flex; align-items: center; height: 34px; }
+        .unified-picker-labels .picker-label-sub { border-top: 1px solid var(--bdr); margin-top: 1px; }
+        .unified-picker-cols { display: flex; }
+        .unified-col { display: flex; flex-direction: column; gap: 0; padding: 4px 0; }
+        .unified-sub-sep { height: 1px; background: var(--bdr); margin: 0 2px; }
+        .unified-empty { height: 36px; }
+
+        .skill-tree-wrap { width: fit-content; margin: 0 auto; }
+        .skill-tree-wrap .controls-panel { width: 100%; }
+        .skills-container { display: flex; gap: 20px; margin-bottom: 100px; }
+        .skills-container.no-subclass { justify-content: center; }
+        .main-skills { flex: 0 0 auto; width: fit-content; }
+        .subclasses-section { flex: 0 0 auto; width: fit-content; }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 96px);
+            grid-auto-rows: auto;
+            gap: 10px;
+            overflow: visible;
+        }
+        .skill-box {
+            grid-row: var(--grid-row); grid-column: var(--grid-col);
+            position: relative; width: 96px; cursor: pointer; z-index: 1; overflow: visible;
+        }
+        .skill-arrow-cell {
+            grid-row: var(--grid-row); grid-column: var(--grid-col);
+            position: relative; width: 96px;
+        }
+        .skill-arrow { position: absolute; }
+        .skill-arrow.down {
+            top: -9px; left: 46px; width: 4px; height: 44px;
+            background: rgba(255,255,255,0.22); border-radius: 2px 2px 0 0;
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+        .skill-arrow.down.active { background: #f4a623; box-shadow: 0 0 10px rgba(244,166,35,0.5); }
+        .skill-arrow.right-begin {
+            top: 22px; left: -10px; width: 58px; height: 4px;
+            background: rgba(255,255,255,0.22); border-radius: 2px 0 0 2px;
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+        .skill-arrow.right-begin.active { background: #f4a623; box-shadow: 0 0 10px rgba(244,166,35,0.5); }
+        .skill-arrow.right-hook {
+            top: 26px; left: 46px; width: 4px; height: 14px;
+            background: rgba(255,255,255,0.22); border-radius: 0 0 2px 2px;
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+        .skill-arrow.right-hook.active { background: #f4a623; box-shadow: 0 0 10px rgba(244,166,35,0.5); }
+        .skill-arrow.tip {
+            top: 33px; left: 39px; width: 0; height: 0;
+            border-left: 9px solid transparent; border-right: 9px solid transparent;
+            border-top: 13px solid rgba(255,255,255,0.28);
+            transition: border-top-color 0.2s, filter 0.2s;
+        }
+        .skill-arrow.tip.active { border-top-color: #f4a623; filter: drop-shadow(0 2px 5px rgba(244,166,35,0.65)); }
+        .skill-arrow.right-begin ~ .skill-arrow.tip { top: 40px; left: 39px; }
+
+        .skill-box.inactive { opacity: 0.85; }
+        .skill-box.dependency-locked { opacity: 0.45; }
+
+        .skill-card {
+            width: 90px; height: 84px; box-sizing: border-box; border-radius: 9px;
+            background: var(--card-bg, var(--surface2)); border: 1px solid var(--bdr-hi);
+            display: flex; flex-direction: column; overflow: hidden;
+            transition: border-color 0.15s, box-shadow 0.15s, background 0.15s; position: relative;
+        }
+        .skill-card::before {
+            content: ''; display: block; height: 3px; width: 100%;
+            background: var(--card-color, var(--c-grey)); opacity: 0.55; flex-shrink: 0;
+        }
+        .skill-box.active .skill-card {
+            border-color: var(--card-color, var(--c-grey));
+            background: color-mix(in srgb, var(--card-color, var(--c-grey)) 45%, transparent);
+            box-shadow: 0 0 12px -2px var(--card-color, var(--c-grey)), 0 2px 14px rgba(0,0,0,0.5);
+        }
+        .skill-box.active .skill-card::before { opacity: 0.9; }
+        .skill-box.inactive:not(.dependency-locked) .skill-card {
+            border-color: rgba(244,166,35,0.45);
+            animation: pulse-ring 2s infinite;
+        }
+        @keyframes pulse-ring {
+            0%,100% { box-shadow: 0 0 0 2px rgba(244,166,35,0.10), 0 2px 14px rgba(0,0,0,0.5); }
+            50%      { box-shadow: 0 0 0 4px rgba(244,166,35,0.22), 0 2px 14px rgba(0,0,0,0.5); }
+        }
+        .skill-box[data-color="red"]    { --card-color: var(--c-red);    --card-bg: var(--c-red-bg); }
+        .skill-box[data-color="blue"]   { --card-color: var(--c-blue);   --card-bg: var(--c-blue-bg); }
+        .skill-box[data-color="green"]  { --card-color: var(--c-green);  --card-bg: var(--c-green-bg); }
+        .skill-box[data-color="orange"] { --card-color: var(--c-orange); --card-bg: var(--c-orange-bg); }
+        .skill-box[data-color="purple"] { --card-color: var(--c-purple); --card-bg: var(--c-purple-bg); }
+        .skill-box[data-color="yellow"] { --card-color: var(--c-yellow); --card-bg: var(--c-yellow-bg); }
+        .skill-box[data-color="grey"]   { --card-color: var(--c-grey);   --card-bg: var(--c-grey-bg); }
+
+        .card-body { display: flex; align-items: flex-start; padding: 5px 5px 5px; gap: 4px; flex: 1; }
+        .card-icon-col { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; }
+        .card-icon {
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .card-icon img { width: 32px; height: 32px; object-fit: contain; display: block; image-rendering: pixelated; }
+        .card-side-btns { display: flex; flex-direction: column; gap: 3px; flex: 1; align-items: flex-end; padding-right: 4px; }
+        .skill-current-level { font-size: 20px; font-weight: 700; color: #ffffff; line-height: 1; font-family: Arial, sans-serif; }
+        .skill-box.active .skill-current-level { color: var(--card-color); }
+        .skill-current-level.over-cap { color: #f4a623 !important; }
+        .skill-max-level { font-size: 10px; color: var(--text-dim); font-family: Arial, sans-serif; line-height: 1; }
+
+        .btn-skill {
+            width: 22px; height: 22px; flex-shrink: 0;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 4px; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; padding: 0; transition: background 0.14s, border-color 0.14s;
+        }
+        .btn-skill img { width: 18px; height: 18px; object-fit: contain; }
+        .btn-skill.plus:hover { background: var(--card-color, var(--c-grey)); border-color: var(--card-color, var(--c-grey)); }
+        .btn-skill.minus:hover { background: rgba(200,60,60,0.25); border-color: rgba(200,80,80,0.5); }
+        .btn-skill.plus.capped, .btn-skill.minus.capped {
+            opacity: 0.25; filter: grayscale(1); cursor: not-allowed;
+        }
+        .btn-skill.plus.capped:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.12); }
+        .btn-skill.minus.capped:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.12); }
+        .btn-skill:active { transform: scale(0.95); }
+
+        .btn-enchantment {
+            width: 22px; height: 22px; border-radius: 4px;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            padding: 0; transition: background 0.14s; flex-shrink: 0; position: relative;
+        }
+        .btn-enchantment img { width: 18px; height: 18px; object-fit: contain; }
+        .btn-enchantment:hover { background: rgba(180,200,210,0.18); border-color: rgba(255,255,255,0.25); }
+
+        .skill-tooltip {
+            position: fixed; background: rgba(8,8,22,0.97); color: #e0e0f0;
+            padding: 11px 14px; border-radius: 9px; font-size: 12px; font-weight: 400;
+            border: 1px solid rgba(255,255,255,0.09); box-shadow: 0 8px 32px rgba(0,0,0,0.9);
+            pointer-events: none; z-index: 10000; max-width: 440px; min-width: 200px;
+            word-wrap: break-word; display: none;
+        }
+        .skill-tooltip.show { display: block; }
+        .skill-tooltip .tt-title  { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 2px; line-height: 1.3; }
+        .skill-tooltip .tt-desc   { color: #5a5a7a; font-size: 11px; margin-bottom: 6px; line-height: 1.4; }
+        .skill-tooltip .tt-divider { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 5px 0; }
+        .skill-tooltip .tt-row    { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; line-height: 1.6; }
+        .skill-tooltip .tt-label  { color: rgba(255,255,255,0.35); font-size: 11px; white-space: nowrap; }
+        .skill-tooltip .tt-value  { color: #c0c0dc; font-size: 12px; text-align: right; }
+        .skill-tooltip .tt-effect { color: #7ecfff; font-size: 11px; font-style: italic; line-height: 1.4; margin-top: 2px; }
+
+        .enchantment-menu {
+            position: fixed; background: rgba(10,12,20,0.90);
+            border: 1px solid rgba(255,255,255); border-radius: 8px; padding: 6px;
+            z-index: 10001; display: none; width: auto; box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+        }
+        .enchantment-menu.show { display: block; }
+        .enchantment-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+        .enchantment-deselect {
+            grid-column: 3; border-radius: 4px !important; width: 18px !important; height: 18px !important;
+            font-size: 10px !important; font-weight: bold !important;
+            border: 1px solid rgba(200,60,60,0.5) !important; background: transparent !important;
+            box-shadow: none !important; color: #cc4444 !important;
+            letter-spacing: 0; text-transform: none; align-self: center; justify-self: center;
+        }
+        .enchantment-deselect:hover { background: rgba(255,60,60,0.15) !important; color: #ff6666 !important; transform: scale(1.1) !important; }
+        .enchantment-option {
+            width: 32px; height: 32px; border-radius: 4px; border: 2px solid transparent;
+            background: transparent; cursor: pointer; transition: transform 0.12s, border-color 0.12s;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0; overflow: hidden; box-shadow: none;
+        }
+        .enchantment-option::before { display: none; }
+        .enchantment-option img { width: 32px; height: 32px; object-fit: contain; display: block; position: relative; z-index: 1; }
+        .enchantment-option:hover { border-color: #ff8c00; transform: scale(1.12); box-shadow: 0 0 8px rgba(255,140,0,0.6); }
+        .enchantment-option.active { border-color: #ff8c00; border-radius: 50%; box-shadow: 0 0 10px rgba(255,140,0,0.8), 0 0 20px rgba(255,140,0,0.4); transform: scale(1.0); }
+        .enchantment-option.disabled { opacity: 0.3; filter: grayscale(1); cursor: not-allowed; }
+        .enchantment-option.disabled:hover { transform: none; border-color: transparent; box-shadow: none; }
+        .rp-empty-slot { width: 24px; height: 24px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.25); display: block; flex-shrink: 0; }
+
+
+        .subclass-skills-container { display: flex; flex-direction: column; gap: 16px; }
+        .subclass-group {
+            border: 1px solid rgba(80,120,220,0.13); border-radius: 12px;
+            padding: 14px 16px 18px; background: #131326; box-shadow: 0 4px 28px rgba(0,0,0,0.4);
+        }
+        .subclass-group h3 {
+            font-size: 10px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase;
+            color: rgba(100,140,220,0.4); margin-bottom: 14px; padding-bottom: 10px;
+            border-bottom: 1px solid var(--bdr); display: flex; align-items: center; gap: 8px;
+        }
+        .subclass-group h3::before {
+            content: ''; display: block; width: 3px; height: 16px; border-radius: 2px;
+            background: #5588dd; opacity: 0.5; flex-shrink: 0;
+        }
+        .subclass-grid { display: grid; grid-template-columns: repeat(5, 96px); gap: 10px; overflow: visible; }
+
+        /* BUILDS DRAWER */
+        .builds-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 500; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+        .builds-overlay.open { opacity: 1; pointer-events: auto; }
+        .builds-drawer {
+            position: fixed; top: 0; right: 0; bottom: 0; width: 340px;
+            background: var(--surface); border-left: 1px solid var(--bdr-hi);
+            box-shadow: -8px 0 40px rgba(0,0,0,0.6);
+            z-index: 501; display: flex; flex-direction: column;
+            transform: translateX(100%); transition: transform 0.22s ease;
+        }
+        .builds-drawer.open { transform: translateX(0); }
+        .builds-drawer-header { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--bdr); flex-shrink: 0; }
+        .builds-drawer-title { font-size: 13px; font-weight: 700; color: var(--text); flex: 1; letter-spacing: 0.5px; }
+        .builds-close-btn {
+            width: 26px; height: 26px; border-radius: 5px; border: 1px solid var(--bdr-hi);
+            background: transparent; color: var(--text-mid); cursor: pointer; font-size: 14px;
+            display: flex; align-items: center; justify-content: center; transition: all 0.13s;
+        }
+        .builds-close-btn:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+        .builds-tabs { display: flex; flex-shrink: 0; border-bottom: 1px solid var(--bdr); }
+        .builds-tab {
+            flex: 1; padding: 9px 0; font-size: 11px; font-weight: 600; letter-spacing: 0.8px;
+            text-transform: uppercase; color: var(--text-mid); background: transparent;
+            border: none; border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.13s; font-family: inherit;
+        }
+        .builds-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .builds-tab:hover:not(.active) { color: var(--text); }
+        .builds-tab-content { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+        .builds-tab-content.active { display: flex; }
+        .builds-list { flex: 1; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; scrollbar-width: thin; }
+        .build-card { background: var(--surface2); border: 1px solid var(--bdr-hi); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; transition: border-color 0.13s; }
+        .build-card:hover { border-color: rgba(255,255,255,0.22); }
+        .build-card-top { display: flex; align-items: center; gap: 8px; }
+        .build-card-name { font-size: 12px; font-weight: 600; color: var(--text); flex: 1; }
+        .build-card-class { font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent-bdr); border-radius: 4px; padding: 2px 6px; flex-shrink: 0; }
+        .build-card-desc { font-size: 10px; color: var(--text-mid); line-height: 1.45; }
+        .build-card-actions { display: flex; gap: 5px; align-items: center; margin-top: 2px; }
+        .build-card-date { font-size: 9px; color: var(--text-dim); flex: 1; }
+        .btn-load-build { height: 24px; padding: 0 10px; border-radius: 5px; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; transition: all 0.13s; border: 1px solid rgba(70,110,210,0.38); color: #6699dd; background: transparent; font-family: inherit; }
+        .btn-load-build:hover { background: rgba(70,110,210,0.12); color: #88bbee; }
+        .btn-del-build { height: 24px; width: 24px; border-radius: 5px; font-size: 12px; cursor: pointer; border: 1px solid rgba(200,60,60,0.3); color: #cc5555; background: transparent; display: flex; align-items: center; justify-content: center; transition: all 0.13s; }
+        .btn-del-build:hover { background: rgba(200,60,60,0.1); color: #ee7777; }
+        .builds-save-bar { padding: 10px 12px; border-top: 1px solid var(--bdr); display: flex; gap: 7px; flex-shrink: 0; }
+        .builds-save-input { flex: 1; height: 32px; padding: 0 10px; border-radius: 6px; background: var(--surface2); border: 1px solid var(--bdr-hi); color: var(--text); font-size: 12px; font-family: inherit; outline: none; }
+        .builds-save-input:focus { border-color: var(--accent-bdr); }
+        .builds-save-input::placeholder { color: var(--text-dim); }
+        .btn-save-build { height: 32px; padding: 0 12px; border-radius: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; transition: all 0.13s; border: 1px solid var(--accent-bdr); color: var(--accent); background: var(--accent-dim); font-family: inherit; white-space: nowrap; flex-shrink: 0; }
+        .btn-save-build:hover { background: rgba(244,166,35,0.2); }
+        .builds-empty { padding: 24px 12px; text-align: center; color: var(--text-dim); font-size: 11px; line-height: 1.6; }
+        .builds-empty code { color: var(--text-mid); font-size: 10px; }
+
+        #loading-msg { text-align: center; padding: 80px 20px; color: var(--text-mid); font-size: 14px; }
+
+        .mobile-dropdowns {
+            display: none;
+            align-items: center; gap: 10px;
+            padding: 8px 12px; border-bottom: 1px solid var(--bdr);
+            background: var(--surface);
+        }
+        /* Custom icon dropdown */
+        .m-dd {
+            position: relative; flex: 1;
+        }
+        .m-dd-trigger {
+            display: flex; align-items: center; gap: 8px;
+            height: 38px; padding: 0 10px 0 8px;
+            border-radius: 7px; background: var(--surface2);
+            border: 1px solid var(--bdr-hi); cursor: pointer;
+            color: var(--text); font-family: inherit; font-size: 12px; font-weight: 600;
+            width: 100%; text-align: left;
+        }
+        .m-dd-trigger img { width: 22px; height: 22px; object-fit: contain; border-radius: 3px; flex-shrink: 0; }
+        .m-dd-trigger .m-dd-label { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .m-dd-trigger .m-dd-caret { font-size: 9px; color: var(--text-mid); flex-shrink: 0; transition: transform 0.18s; }
+        .m-dd.open .m-dd-trigger { border-color: var(--accent-bdr); }
+        .m-dd.open .m-dd-caret { transform: rotate(180deg); }
+        .m-dd-list {
+            display: none; position: fixed;
+            background: var(--surface); border: 1px solid var(--bdr-hi);
+            border-radius: 8px; overflow-y: auto; max-height: 260px;
+            z-index: 9500; box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+            scrollbar-width: thin;
+        }
+        .m-dd.open .m-dd-list { display: block; }
+        .m-dd-item {
+            display: flex; align-items: center; gap: 9px;
+            padding: 9px 12px; cursor: pointer; font-size: 13px; color: var(--text-mid);
+            transition: background 0.12s;
+        }
+        .m-dd-item:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+        .m-dd-item.selected { background: var(--accent-dim); color: var(--accent); }
+        .m-dd-item img { width: 24px; height: 24px; object-fit: contain; border-radius: 3px; flex-shrink: 0; }
+        .m-dd-item span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* ── Mobile ─────────────────────────────────────────────────────── */
+        @media (max-width: 768px) {
+            /* Header */
+            .app-header { padding: 0 10px; gap: 7px; height: 46px; }
+            .logo { font-size: 13px; letter-spacing: 2px; }
+            .logo-sub { display: none; }
+            .lv-pill { display: none; }
+            .sp-badge { padding: 4px 9px; gap: 4px; }
+            .sp-badge .sp-num { font-size: 13px; }
+            .sp-badge .sp-label { display: none; }
+            .hbtn { height: 30px; padding: 0 9px; font-size: 10px; }
+            .hbtn span { display: none; }
+            .lang-select { height: 30px; font-size: 10px; padding: 0 6px; }
+
+            /* Builds drawer: full-width */
+            .builds-drawer { width: 100%; }
+
+            /* Container */
+            .container { padding: 10px 0; }
+
+            /* Skill tree: full-width, sections scroll horizontally */
+            body { overflow-x: hidden; }
+            .skill-tree-wrap { width: 100%; }
+            .skill-tree-wrap .controls-panel { width: 100%; overflow-x: auto; }
+            .skills-container {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+                padding: 12px 0;
+                margin-bottom: 40px;
+            }
+            .main-skills {
+                width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding: 0 10px 8px 4px;
+                box-sizing: border-box;
+            }
+            .subclasses-section {
+                width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding: 0 10px 8px 4px;
+                box-sizing: border-box;
+            }
+            /* Scale grids down so they fit the screen without scrolling.
+               zoom shrinks both visual size and layout box, so arrows
+               (which use pixel offsets inside the grid) remain correct. */
+            .skills-grid, .subclass-grid {
+                zoom: 0.72;
+            }
+            .subclass-group {
+                padding: 12px 8px 14px;
+                overflow-x: auto;
+            }
+
+            /* Picker: touch-friendly */
+            .unified-picker { padding: 6px 10px; }
+            .picker-item { padding: 7px 10px; }
+            .picker-item img { width: 26px; height: 26px; }
+            .picker-item span { font-size: 11px; }
+
+            /* Tooltip: stay within viewport */
+            .skill-tooltip { max-width: calc(100vw - 20px); font-size: 11px; }
+
+            /* Hide full picker panel, show dropdowns instead */
+            .controls-panel { overflow: visible; }
+            .unified-picker { display: none !important; }
+            .mobile-dropdowns { display: flex !important; }
+
+        }
+    </style>
+</head>
+<body>
+
+<header class="app-header">
+    <div class="logo">DBO<span class="logo-sep"> | </span>Galaxy</div>
+    <div class="logo-sub">Skill Calculator</div>
+    <div class="hgap"></div>
+    <div class="lv-pill" id="hdr-maxlv">Max Lv. 75</div>
+    <div class="sp-badge">
+        <span class="sp-num" id="remaining">0</span>
+        <span class="sp-label" id="hdr-splabel">SP Left</span>
+    </div>
+    <button class="hbtn share" id="share-btn">&#x2398;&nbsp; <span id="hdr-share">Share Build</span></button>
+    <button class="hbtn reset" id="reset-btn">&#x21BA;&nbsp; <span id="hdr-reset">Reset</span></button>
+    <button class="hbtn" id="builds-btn">&#x2630;&nbsp; <span id="hdr-builds">Builds</span></button>
+    <select id="lang-select" class="lang-select" title="Language">
+        <option value="en">EN</option>
+        <option value="es">ES</option>
+        <option value="pt">PT</option>
+        <option value="ko">KO</option>
+        <option value="zh">ZH</option>
+        <option value="fr">FR</option>
+        <option value="it">IT</option>
+        <option value="ja">JA</option>
+    </select>
+</header>
+
+<div class="builds-overlay" id="builds-overlay"></div>
+<div class="builds-drawer" id="builds-drawer">
+    <div class="builds-drawer-header">
+        <span class="builds-drawer-title" id="drawer-title">Builds</span>
+        <button class="builds-close-btn" id="builds-close">&#x2715;</button>
+    </div>
+    <div class="builds-tabs">
+        <button class="builds-tab active" data-tab="presets" id="tab-btn-presets">Presets</button>
+        <button class="builds-tab" data-tab="saved" id="tab-btn-saved">My Saves</button>
+    </div>
+    <div class="builds-tab-content active" id="tab-presets">
+        <div class="builds-list" id="presets-list"></div>
+    </div>
+    <div class="builds-tab-content" id="tab-saved">
+        <div class="builds-list" id="saved-list"></div>
+        <div class="builds-save-bar">
+            <input class="builds-save-input" id="save-build-name" placeholder="Build name..." maxlength="40">
+            <button class="btn-save-build" id="save-build-btn">Save</button>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div id="loading-msg">Loading skill data…</div>
+    <div id="app" style="display:none;">
+        <div class="skill-tree-wrap">
+            <div class="controls-panel">
+                <div class="mobile-dropdowns" style="display:none;">
+                    <div class="m-dd" id="mobile-class-dd">
+                        <button class="m-dd-trigger" id="mobile-class-trigger" type="button">
+                            <img id="mobile-class-icon" src="" alt="" style="display:none;">
+                            <span class="m-dd-label" id="mobile-class-label">Class</span>
+                            <span class="m-dd-caret">&#9660;</span>
+                        </button>
+                        <div class="m-dd-list" id="mobile-class-list"></div>
+                    </div>
+                    <div class="m-dd" id="mobile-sub-dd" style="display:none;">
+                        <button class="m-dd-trigger" id="mobile-sub-trigger" type="button">
+                            <img id="mobile-sub-icon" src="" alt="" style="display:none;">
+                            <span class="m-dd-label" id="mobile-sub-label">Subclass</span>
+                            <span class="m-dd-caret">&#9660;</span>
+                        </button>
+                        <div class="m-dd-list" id="mobile-sub-list"></div>
+                    </div>
+                </div>
+                <div class="unified-picker" id="class-picker">
+                    <div class="unified-picker-labels">
+                        <span class="picker-section-label picker-label-class" id="picker-lbl-class">Class</span>
+                        <span class="picker-section-label picker-label-sub" id="picker-lbl-sub">Subclass</span>
+                    </div>
+                    <div class="picker-vsep" style="align-self:stretch; height:auto;"></div>
+                    <div class="unified-picker-cols" id="picker-cols"></div>
+                </div>
+            </div>
+            <div class="skills-container no-subclass" id="skills-container" style="padding: 18px 0;">
+                <div class="main-skills">
+                    <div class="subclass-group">
+                        <h3 id="main-class-title">Skills</h3>
+                        <div class="skills-grid" id="skills-grid"></div>
+                    </div>
+                </div>
+                <div class="subclasses-section">
+                    <div class="subclass-skills-container" id="subclass-skills-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="text" id="build-url" style="position:absolute;left:-9999px" readonly>
+<div id="skill-tooltip" class="skill-tooltip"></div>
+
+<script src="static/js/preset-builds.js"></script>
+<script>
+// ─── GLOBALS ─────────────────────────────────────────────────────────────────
+const RP_BTN_DEFAULT = 'static/ui/rp-icon_active.png';
+const SAVES_KEY = 'dbo_saved_builds';
+
+// ─── LOCALISATION ─────────────────────────────────────────────────────────────
+const LANG_EFFECT_KEYS = {
+    en:'English', es:'Spanish', pt:'Portuguese',
+    ko:'Korean',  zh:'Chinese', fr:'French',
+    it:'Italian', ja:'Japanese',
+};
+const UI_STRINGS = {
+    en:{spLeft:'SP Left',shareBtn:'Share Build',resetBtn:'Reset',buildsBtn:'Builds',maxLv:'Max Lv. 75',buildsTitle:'Builds',presetsTab:'Presets',savedTab:'My Saves',savePlaceholder:'Build name...',saveBtn:'Save',classLabel:'Class',subclassLabel:'Subclass',loadingMsg:'Loading skill data\u2026',loadBtn:'Load',noPresets:'No preset builds yet.',noSaved:'No saved builds yet.<br>Set up your skills then hit Save.',resetConfirm:'Reset all skill points?',maxLevelMsg:'Max level reached',noPointsMsg:'No points remaining',skillsSuffix:' Skills',tTarget:'Target',tRange:'Range',tDuration:'Duration',tLp:'LP Cost',tEp:'EP Cost',tCooldown:'Cooldown',tRequires:'Requires',tReqLevel:'Req. Level',reqLevelBlock:'Requires character level {level} (max 29 without subclass)'},
+    es:{spLeft:'PS Restantes',shareBtn:'Compartir',resetBtn:'Reiniciar',buildsBtn:'Builds',maxLv:'Niv. M\u00e1x. 75',buildsTitle:'Builds',presetsTab:'Presets',savedTab:'Mis Guardados',savePlaceholder:'Nombre del build...',saveBtn:'Guardar',classLabel:'Clase',subclassLabel:'Subclase',loadingMsg:'Cargando datos de habilidades\u2026',loadBtn:'Cargar',noPresets:'Todav\u00eda no hay builds predefinidos.',noSaved:'Todav\u00eda no hay builds guardados.<br>Configura tus habilidades y pulsa Guardar.',resetConfirm:'\u00bfReiniciar todos los puntos de habilidad?',maxLevelMsg:'Nivel m\u00e1ximo alcanzado',noPointsMsg:'Sin puntos restantes',skillsSuffix:' Habilidades',tTarget:'Objetivo',tRange:'Rango',tDuration:'Duraci\u00f3n',tLp:'Coste LP',tEp:'Coste EP',tCooldown:'Enfriamiento',tRequires:'Requiere',tReqLevel:'Niv. Req.',reqLevelBlock:'Requiere nivel de personaje {level} (m\u00e1x. 29 sin subclase)'},
+    pt:{spLeft:'PS Restantes',shareBtn:'Compartilhar',resetBtn:'Reiniciar',buildsBtn:'Builds',maxLv:'N\u00edv. M\u00e1x. 75',buildsTitle:'Builds',presetsTab:'Predefinidos',savedTab:'Meus Salvos',savePlaceholder:'Nome do build...',saveBtn:'Salvar',classLabel:'Classe',subclassLabel:'Subclasse',loadingMsg:'Carregando dados de habilidades\u2026',loadBtn:'Carregar',noPresets:'Nenhum build predefinido ainda.',noSaved:'Nenhum build salvo ainda.<br>Configure suas habilidades e clique em Salvar.',resetConfirm:'Redefinir todos os pontos de habilidade?',maxLevelMsg:'N\u00edvel m\u00e1ximo atingido',noPointsMsg:'Sem pontos restantes',skillsSuffix:' Habilidades',tTarget:'Alvo',tRange:'Alcance',tDuration:'Dura\u00e7\u00e3o',tLp:'Custo LP',tEp:'Custo EP',tCooldown:'Recarga',tRequires:'Requer',tReqLevel:'N\u00edv. Req.',reqLevelBlock:'Requer n\u00edvel de personagem {level} (m\u00e1x. 29 sem subclasse)'},
+    ko:{spLeft:'\ub0a8\uc740 SP',shareBtn:'\ube4c\ub4dc \uacf5\uc720',resetBtn:'\ucd08\uae30\ud654',buildsBtn:'\ube4c\ub4dc',maxLv:'\ucd5c\ub300 \ub808\ubca8 75',buildsTitle:'\ube4c\ub4dc',presetsTab:'\ud504\ub9ac\uc14b',savedTab:'\ub0b4 \uc800\uc7a5',savePlaceholder:'\ube4c\ub4dc \uc774\ub984...',saveBtn:'\uc800\uc7a5',classLabel:'\ud074\ub798\uc2a4',subclassLabel:'\uc11c\ube0c\ud074\ub798\uc2a4',loadingMsg:'\uc2a4\ud0ac \ub370\uc774\ud130 \ub85c\ub529 \uc911\u2026',loadBtn:'\ubd88\ub7ec\uc624\uae30',noPresets:'\ud504\ub9ac\uc14b \ube4c\ub4dc\uac00 \uc544\uc9c1 \uc5c6\uc2b5\ub2c8\ub2e4.',noSaved:'\uc800\uc7a5\ub41c \ube4c\ub4dc\uac00 \uc544\uc9c1 \uc5c6\uc2b5\ub2c8\ub2e4.<br>\uc2a4\ud0ac\uc744 \uc124\uc815\ud55c \ud6c4 \uc800\uc7a5\uc744 \ub204\ub974\uc138\uc694.',resetConfirm:'\ubaa8\ub4e0 \uc2a4\ud0ac \ud3ec\uc778\ud2b8\ub97c \ucd08\uae30\ud654\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?',maxLevelMsg:'\ucd5c\ub300 \ub808\ubca8 \ub3c4\ub2ec',noPointsMsg:'\ub0a8\uc740 \ud3ec\uc778\ud2b8 \uc5c6\uc74c',skillsSuffix:' \uc2a4\ud0ac',tTarget:'\ub300\uc0c1',tRange:'\uc0ac\uac70\ub9ac',tDuration:'\uc9c0\uc18d \uc2dc\uac04',tLp:'LP \uc18c\ubaa8',tEp:'EP \uc18c\ubaa8',tCooldown:'\ucfe8\ub2e4\uc6b4',tRequires:'\ud544\uc694 \uc870\uac74',tReqLevel:'\ud544\uc694 \ub808\ubca8',reqLevelBlock:'\uce90\ub9ad\ud130 \ub808\ubca8 {level} \ud544\uc694 (\uc11c\ube0c\ud074\ub798\uc2a4 \uc5c6\uc774 \ucd5c\ub300 29)'},
+    zh:{spLeft:'\u5269\u4f59\u6280\u80fd\u70b9',shareBtn:'\u5206\u4eab\u914d\u7f6e',resetBtn:'\u91cd\u7f6e',buildsBtn:'\u914d\u7f6e',maxLv:'\u6700\u5927\u7b49\u7ea7 75',buildsTitle:'\u914d\u7f6e',presetsTab:'\u9884\u8bbe',savedTab:'\u6211\u7684\u5b58\u6863',savePlaceholder:'\u914d\u7f6e\u540d\u79f0...',saveBtn:'\u4fdd\u5b58',classLabel:'\u804c\u4e1a',subclassLabel:'\u526f\u804c\u4e1a',loadingMsg:'\u6b63\u5728\u52a0\u8f7d\u6280\u80fd\u6570\u636e\u2026',loadBtn:'\u52a0\u8f7d',noPresets:'\u6682\u65e0\u9884\u8bbe\u914d\u7f6e\u3002',noSaved:'\u6682\u65e0\u4fdd\u5b58\u7684\u914d\u7f6e\u3002<br>\u8bbe\u7f6e\u6280\u80fd\u540e\u70b9\u51fb\u4fdd\u5b58\u3002',resetConfirm:'\u91cd\u7f6e\u6240\u6709\u6280\u80fd\u70b9\uff1f',maxLevelMsg:'\u5df2\u8fbe\u6700\u5927\u7b49\u7ea7',noPointsMsg:'\u6ca1\u6709\u5269\u4f59\u70b9\u6570',skillsSuffix:' \u6280\u80fd',tTarget:'\u76ee\u6807',tRange:'\u8303\u56f4',tDuration:'\u6301\u7eed\u65f6\u95f4',tLp:'LP \u6d88\u8017',tEp:'EP \u6d88\u8017',tCooldown:'\u51b7\u5374',tRequires:'\u9700\u8981',tReqLevel:'\u6240\u9700\u7b49\u7ea7',reqLevelBlock:'\u9700\u8981\u89d2\u8272\u7b49\u7ea7 {level}\uff08\u65e0\u526f\u804c\u4e1a\u6700\u9ad8 29 \u7ea7\uff09'},
+    fr:{spLeft:'PS restants',shareBtn:'Partager',resetBtn:'R\u00e9initialiser',buildsBtn:'Builds',maxLv:'Niv. Max. 75',buildsTitle:'Builds',presetsTab:'Pr\u00e9r\u00e9glages',savedTab:'Mes sauvegardes',savePlaceholder:'Nom du build...',saveBtn:'Sauvegarder',classLabel:'Classe',subclassLabel:'Sous-classe',loadingMsg:'Chargement des donn\u00e9es de comp\u00e9tences\u2026',loadBtn:'Charger',noPresets:"Aucun build pr\u00e9d\u00e9fini pour l'instant.",noSaved:'Aucun build sauvegard\u00e9.<br>Configurez vos comp\u00e9tences puis cliquez sur Sauvegarder.',resetConfirm:'R\u00e9initialiser tous les points de comp\u00e9tence\u00a0?',maxLevelMsg:'Niveau maximum atteint',noPointsMsg:'Aucun point restant',skillsSuffix:' Comp\u00e9tences',tTarget:'Cible',tRange:'Port\u00e9e',tDuration:'Dur\u00e9e',tLp:'Co\u00fbt LP',tEp:'Co\u00fbt EP',tCooldown:'Recharge',tRequires:'Requiert',tReqLevel:'Niv. requis',reqLevelBlock:'Requiert le niveau {level} (max 29 sans sous-classe)'},
+    it:{spLeft:'PS Rimasti',shareBtn:'Condividi',resetBtn:'Reimposta',buildsBtn:'Build',maxLv:'Liv. Max. 75',buildsTitle:'Build',presetsTab:'Preimpostati',savedTab:'I miei salvataggi',savePlaceholder:'Nome del build...',saveBtn:'Salva',classLabel:'Classe',subclassLabel:'Sottoclasse',loadingMsg:'Caricamento dati abilit\u00e0\u2026',loadBtn:'Carica',noPresets:'Nessun build preimpostato.',noSaved:'Nessun build salvato.<br>Imposta le abilit\u00e0 e poi clicca su Salva.',resetConfirm:'Reimposta tutti i punti abilit\u00e0?',maxLevelMsg:'Livello massimo raggiunto',noPointsMsg:'Nessun punto rimasto',skillsSuffix:' Abilit\u00e0',tTarget:'Bersaglio',tRange:'Portata',tDuration:'Durata',tLp:'Costo LP',tEp:'Costo EP',tCooldown:'Ricarica',tRequires:'Richiede',tReqLevel:'Liv. Rich.',reqLevelBlock:'Richiede livello personaggio {level} (max 29 senza sottoclasse)'},
+    ja:{spLeft:'\u6b8b\u308a SP',shareBtn:'\u30d3\u30eb\u30c9\u5171\u6709',resetBtn:'\u30ea\u30bb\u30c3\u30c8',buildsBtn:'\u30d3\u30eb\u30c9',maxLv:'\u6700\u5927 Lv. 75',buildsTitle:'\u30d3\u30eb\u30c9',presetsTab:'\u30d7\u30ea\u30bb\u30c3\u30c8',savedTab:'\u30de\u30a4\u30bb\u30fc\u30d6',savePlaceholder:'\u30d3\u30eb\u30c9\u540d...',saveBtn:'\u4fdd\u5b58',classLabel:'\u30af\u30e9\u30b9',subclassLabel:'\u30b5\u30d6\u30af\u30e9\u30b9',loadingMsg:'\u30b9\u30ad\u30eb\u30c7\u30fc\u30bf\u3092\u8aad\u307f\u8fbc\u307f\u4e2d\u2026',loadBtn:'\u8aad\u307f\u8fbc\u3080',noPresets:'\u30d7\u30ea\u30bb\u30c3\u30c8\u30d3\u30eb\u30c9\u306f\u307e\u3060\u3042\u308a\u307e\u305b\u3093\u3002',noSaved:'\u4fdd\u5b58\u3055\u308c\u305f\u30d3\u30eb\u30c9\u306f\u307e\u3060\u3042\u308a\u307e\u305b\u3093\u3002<br>\u30b9\u30ad\u30eb\u3092\u8a2d\u5b9a\u3057\u3066\u304b\u3089\u4fdd\u5b58\u3092\u30af\u30ea\u30c3\u30af\u3057\u3066\u304f\u3060\u3055\u3044\u3002',resetConfirm:'\u3059\u3079\u3066\u306e\u30b9\u30ad\u30eb\u30dd\u30a4\u30f3\u30c8\u3092\u30ea\u30bb\u30c3\u30c8\u3057\u307e\u3059\u304b\uff1f',maxLevelMsg:'\u6700\u5927\u30ec\u30d9\u30eb\u306b\u9054\u3057\u307e\u3057\u305f',noPointsMsg:'\u6b8b\u308a\u30dd\u30a4\u30f3\u30c8\u306a\u3057',skillsSuffix:' \u30b9\u30ad\u30eb',tTarget:'\u30bf\u30fc\u30b2\u30c3\u30c8',tRange:'\u5c04\u7a0b',tDuration:'\u6301\u7d9a\u6642\u9593',tLp:'LP\u6d88\u8cbb',tEp:'EP\u6d88\u8cbb',tCooldown:'\u30af\u30fc\u30eb\u30c0\u30a6\u30f3',tRequires:'\u5fc5\u8981\u88c5\u5099',tReqLevel:'\u5fc5\u8981\u30ec\u30d9\u30eb',reqLevelBlock:'\u30ad\u30e3\u30e9\u30af\u30bf\u30fc\u30ec\u30d9\u30eb {level} \u304c\u5fc5\u8981\u3067\u3059\uff08\u30b5\u30d6\u30af\u30e9\u30b9\u306a\u3057\u3067\u6700\u5927 29\uff09'},
+};
+let currentLang = localStorage.getItem('dbo_lang') || 'en';
+document.getElementById('lang-select').value = currentLang;
+function getT(key) {
+    return (UI_STRINGS[currentLang] || UI_STRINGS.en)[key] ?? UI_STRINGS.en[key] ?? '';
+}
+function formatEffectForLang(raw, lang) {
+    if (!raw || raw[0] == null) return '';
+    const [effectId, value, damageType, effectType] = raw;
+    const entry = APP_DATA?.effect_translations?.[String(effectId)];
+    if (!entry) return '';
+    const langKey = LANG_EFFECT_KEYS[lang] || 'English';
+    let text = entry[langKey] || entry['English'] || '';
+    if (!text) return '';
+    const numSuffix = effectType === 1 ? '%' : '';
+    if (text.includes('%d')) text = text.replace('%d', Math.round(value) + numSuffix);
+    else if (text.includes('%g')) text = text.replace('%g', value + numSuffix);
+    const DMGPFX = {1:'Physical', 2:'Energy', 3:'Mixed'};
+    if (effectId >= 100 && effectId <= 104 && DMGPFX[damageType]) text = DMGPFX[damageType] + ' ' + text;
+    return text;
+}
+
+let APP_DATA = null;       // loaded from app_data.json
+let selectedClass = '';
+let currentSubclassName = '';
+let maxPoints = 74;
+let usedPoints = 0;
+let skillLevels = {};      // idx -> level
+let skillEnchantments = {}; // idx -> 'none'|'rp1'..'rp6'
+
+// ─── DATA LOADING ─────────────────────────────────────────────────────────────
+async function loadData() {
+    const resp = await fetch('static/app_data.json');
+    if (!resp.ok) throw new Error('Failed to load static/app_data.json – did you run generate_app_data.py?');
+    APP_DATA = await resp.json();
+}
+
+// ─── URL HELPERS ──────────────────────────────────────────────────────────────
+function getURLParam(key) {
+    return new URLSearchParams(window.location.search).get(key);
+}
+
+// ─── COLOUR HELPER (mirrors Python logic in JS) ───────────────────────────────
+function getIconBackColor(useType, damageType, skillType) {
+    if (useType == 1) {
+        if (damageType == 1) return 'red';
+        if (damageType == 2) return 'blue';
+        if (damageType == 3) {
+            if      (skillType == 1) return 'purple';
+            else if (skillType == 3) return 'green';
+            else if (skillType == 5) return 'green';
+            else if (skillType == 7) return 'purple';
+            else                     return 'orange';
+        }
+        return 'grey';
+    }
+    if (useType == 2) return 'yellow';
+    return 'grey';
+}
+
+// ─── BUILD PARSER (port of Python parse_minified_build) ───────────────────────
+function parseMinifiedBuild(buildStr, className) {
+    const allocated = {};
+    const enchantments = {};
+    let subclassFromUrl = null;
+    const enchFromCode = { '0':'none','1':'rp1','2':'rp2','3':'rp3','4':'rp4','5':'rp5','6':'rp6' };
+
+    const parts = buildStr.split('|');
+    if (parts.length < 2) return { allocated, enchantments, subclassFromUrl };
+
+    const levelsStr  = parts[0];
+    const enchantsStr = parts[1];
+    if (parts.length > 2) subclassFromUrl = decodeURIComponent(parts[2]);
+
+    const classData = APP_DATA.classes[className];
+    if (!classData) return { allocated, enchantments, subclassFromUrl };
+
+    let allSkills = [...classData.skills];
+    if (subclassFromUrl) {
+        const sc = classData.subclasses.find(s => s.name === subclassFromUrl);
+        if (sc) allSkills = allSkills.concat(sc.skills);
+    }
+
+    let charIdx = 0;
+    for (const skill of allSkills) {
+        const requireSp = skill.require_sp;
+        const selfTrain  = skill.self_train;
+        const maxLevel   = skill.max;
+        const inUrl = !(requireSp === 0 && selfTrain === 0 && maxLevel === 1);
+        if (inUrl) {
+            allocated[skill.name]    = charIdx < levelsStr.length  ? (parseInt(levelsStr[charIdx])  || 0) : 0;
+            enchantments[skill.name] = charIdx < enchantsStr.length ? (enchFromCode[enchantsStr[charIdx]] || 'none') : 'none';
+            charIdx++;
+        } else {
+            allocated[skill.name]    = 0;
+            enchantments[skill.name] = 'none';
+        }
+    }
+    return { allocated, enchantments, subclassFromUrl };
+}
+
+// ─── BUILD URL ENCODER ────────────────────────────────────────────────────────
+function updateURL() {
+    const enchCode = { none:'0', rp1:'1', rp2:'2', rp3:'3', rp4:'4', rp5:'5', rp6:'6' };
+    let levelsStr = '', enchantsStr = '';
+
+    document.querySelectorAll('#skills-grid .skill-box').forEach(box => {
+        const maxLv = parseInt(box.dataset.max);
+        const rSp   = parseInt(box.dataset.requireSp);
+        const sTr   = parseInt(box.dataset.selfTrain);
+        if (!(rSp === 0 && sTr === 0 && maxLv === 1)) {
+            const sIdx = parseInt(box.dataset.skillIdx);
+            levelsStr   += (skillLevels[sIdx]       || 0);
+            enchantsStr += (enchCode[skillEnchantments[sIdx] || 'none'] || '0');
+        }
+    });
+
+    if (currentSubclassName) {
+        document.querySelectorAll('#subclass-skills-container .skill-box').forEach(box => {
+            const maxLv = parseInt(box.dataset.max);
+            const rSp   = parseInt(box.dataset.requireSp);
+            const sTr   = parseInt(box.dataset.selfTrain);
+            if (!(rSp === 0 && sTr === 0 && maxLv === 1)) {
+                const sIdx = parseInt(box.dataset.skillIdx);
+                levelsStr   += (skillLevels[sIdx]       || 0);
+                enchantsStr += (enchCode[skillEnchantments[sIdx] || 'none'] || '0');
+            }
+        });
+    }
+
+    let build = levelsStr + '|' + enchantsStr;
+    if (currentSubclassName) build += '|' + encodeURIComponent(currentSubclassName);
+
+    const url = `?class=${encodeURIComponent(selectedClass)}&build=${build}`;
+    document.getElementById('build-url').value = window.location.origin + window.location.pathname + url;
+    history.replaceState({}, '', url);
+}
+
+// ─── SP DISPLAY ───────────────────────────────────────────────────────────────
+function recalcUsedPoints() {
+    usedPoints = 0;
+    document.querySelectorAll('#skills-grid .skill-box, #subclass-skills-container .skill-box').forEach(box => {
+        const sIdx    = parseInt(box.dataset.skillIdx);
+        const level   = skillLevels[sIdx] || 0;
+        const rSp     = parseInt(box.dataset.requireSp);
+        const sTr     = parseInt(box.dataset.selfTrain);
+        const minLevel = (sTr === 0 || rSp === 0) ? 1 : 0;
+        usedPoints += Math.max(0, level - minLevel);
+    });
+}
+
+function updateDisplay() {
+    const remaining = maxPoints - usedPoints;
+    const remainingEl = document.getElementById('remaining');
+    remainingEl.textContent = remaining;
+    remainingEl.style.color = remaining < 0 ? 'var(--c-red)' : '';
+
+    document.querySelectorAll('.skill-box').forEach(box => {
+        let requiredSkills = [];
+        try {
+            const rawReq = box.dataset.requiredSkill;
+            if (rawReq && rawReq !== 'null') {
+                const parsed = JSON.parse(rawReq);
+                requiredSkills = Array.isArray(parsed) ? parsed : [parsed];
+            }
+        } catch (e) { requiredSkills = []; }
+
+        const missing = requiredSkills.filter(idx => (skillLevels[idx] || 0) < 1);
+        const depsMet = missing.length === 0;
+        const plusBtn  = box.querySelector('.btn-skill.plus');
+        const minusBtn = box.querySelector('.btn-skill.minus');
+
+        if (plusBtn) {
+            const rawMax   = parseInt(box.dataset.max) || 0;
+            const maxLevel = (!currentSubclassName && rawMax > 29) ? 29 : rawMax;
+            const sIdx     = parseInt(box.dataset.skillIdx);
+            const curLevel = skillLevels[sIdx] || 0;
+            const trainLevels = JSON.parse(box.dataset.trainLevels || '[]');
+            const nextReqLevel = trainLevels[curLevel] || 0;
+            const blockedByLevel = !currentSubclassName && nextReqLevel > 29;
+            if (!depsMet) {
+                plusBtn.disabled = true;
+                plusBtn.classList.add('capped');
+                plusBtn.style.cursor = 'not-allowed';
+                plusBtn.title = `Requires: ${missing.join(', ')}`;
+                box.classList.add('dependency-locked');
+            } else if (blockedByLevel) {
+                plusBtn.disabled = true;
+                plusBtn.classList.add('capped');
+                plusBtn.style.cursor = 'not-allowed';
+                plusBtn.title = getT('reqLevelBlock').replace('{level}', nextReqLevel);
+                box.classList.remove('dependency-locked');
+            } else if (curLevel >= maxLevel || usedPoints >= maxPoints) {
+                plusBtn.disabled = false;
+                plusBtn.classList.add('capped');
+                plusBtn.style.cursor = '';
+                plusBtn.title = curLevel >= maxLevel ? getT('maxLevelMsg') : getT('noPointsMsg');
+                box.classList.remove('dependency-locked');
+            } else {
+                plusBtn.disabled = false;
+                plusBtn.classList.remove('capped');
+                plusBtn.style.cursor = 'pointer';
+                plusBtn.title = '';
+                box.classList.remove('dependency-locked');
+            }
+        }
+        if (minusBtn) {
+            const rSp  = parseInt(box.dataset.requireSp);
+            const sTr  = parseInt(box.dataset.selfTrain);
+            const minLevel = (sTr === 0 || rSp === 0) ? 1 : 0;
+            const sIdx = parseInt(box.dataset.skillIdx);
+            (skillLevels[sIdx] || 0) <= minLevel
+                ? minusBtn.classList.add('capped')
+                : minusBtn.classList.remove('capped');
+        }
+    });
+
+    // Arrow active states
+    document.querySelectorAll('.skill-arrow-cell').forEach(cell => {
+        const srcRow = cell.dataset.srcRow;
+        const srcCol = cell.dataset.srcCol;
+        if (srcRow === undefined || srcCol === undefined) return;
+        const grid = cell.closest('.skills-grid, .subclass-grid');
+        if (!grid) return;
+        const srcBox = grid.querySelector(`[data-grid-row="${srcRow}"][data-grid-col="${srcCol}"]`);
+        const active = srcBox ? (skillLevels[parseInt(srcBox.dataset.skillIdx)] || 0) >= 1 : false;
+        cell.querySelectorAll('.skill-arrow').forEach(el => el.classList.toggle('active', active));
+    });
+}
+
+// ─── TOOLTIP ─────────────────────────────────────────────────────────────────
+function renderTooltipHTML(tooltipText) {
+    const parts = tooltipText.split('|');
+    const headerParts = parts[0].split(' - ');
+    const skillName = headerParts[0].trim();
+    const skillDesc = headerParts.slice(1).join(' - ').trim();
+    const infoLines  = parts.slice(1).filter(p => p.trim());
+    const effectLines = infoLines.filter(l => l.startsWith('Effect:'));
+    const statLines   = infoLines.filter(l => !l.startsWith('Effect:'));
+
+    let html = `<div class="tt-title">${skillName}</div>`;
+    if (skillDesc) html += `<div class="tt-desc">${skillDesc}</div>`;
+    for (const line of effectLines) {
+        html += `<div class="tt-effect">${line.slice('Effect:'.length).trim()}</div>`;
+    }
+    if (statLines.length) {
+        html += `<hr class="tt-divider">`;
+        for (const line of statLines) {
+            const colonIdx = line.indexOf(':');
+            if (colonIdx !== -1) {
+                const label = line.slice(0, colonIdx).trim();
+                const value = line.slice(colonIdx + 1).trim();
+                html += `<div class="tt-row"><span class="tt-label">${label}</span><span class="tt-value">${value}</span></div>`;
+            } else {
+                html += `<div class="tt-row"><span class="tt-value">${line}</span></div>`;
+            }
+        }
+    }
+    return html;
+}
+
+const tooltipEl = document.getElementById('skill-tooltip');
+// Dismiss tooltip on tap outside a skill card (mobile)
+document.addEventListener('touchstart', e => {
+    if (tooltipEl.classList.contains('show') && !e.target.closest('.skill-card')) {
+        hideTooltip(); tooltipEl._forCard = null;
+    }
+}, { passive: true });
+
+function showTooltip(eventOrEl, text) {
+    if (!text) return;
+    tooltipEl.innerHTML = renderTooltipHTML(text);
+    tooltipEl.classList.add('show');
+    // Accept a DOM element or a mouse event
+    const el = (eventOrEl && typeof eventOrEl.getBoundingClientRect === 'function')
+        ? eventOrEl
+        : (eventOrEl && (eventOrEl.currentTarget || eventOrEl.target));
+    const rect = el ? el.getBoundingClientRect()
+        : { left: 0, top: 0, width: 0, height: 0, bottom: 0 };
+    tooltipEl.style.left = '0px'; tooltipEl.style.top = '0px';
+    const tw = tooltipEl.offsetWidth, th = tooltipEl.offsetHeight;
+    let left = rect.left + rect.width / 2 - tw / 2;
+    let top  = rect.top - th - 10;
+    left = Math.max(8, Math.min(left, window.innerWidth - tw - 8));
+    if (top < 8) top = rect.bottom + 10;
+    tooltipEl.style.left = left + 'px';
+    tooltipEl.style.top  = top  + 'px';
+}
+function hideTooltip() { tooltipEl.classList.remove('show'); }
+
+function attachTooltipListeners(card) {
+    card.addEventListener('mouseenter', e => {
+        if (window.matchMedia('(hover: none)').matches) return; // touch device – skip hover
+        const menu = card.querySelector('.enchantment-menu');
+        if (menu && menu.classList.contains('show')) return;
+        const text = card.dataset.tooltip;
+        if (text) { card._tooltipHovered = true; showTooltip(e, text); }
+    });
+    card.addEventListener('mouseleave', () => { card._tooltipHovered = false; hideTooltip(); });
+    // Mobile: tap the icon area to toggle tooltip
+    const iconEl = card.querySelector('.card-icon');
+    if (iconEl) {
+        iconEl.addEventListener('touchend', e => {
+            e.preventDefault();
+            const text = card.dataset.tooltip;
+            if (!text) return;
+            if (tooltipEl._forCard === card && tooltipEl.classList.contains('show')) {
+                hideTooltip(); tooltipEl._forCard = null;
+            } else {
+                hideTooltip();
+                showTooltip(iconEl, text);
+                tooltipEl._forCard = card;
+            }
+        });
+    }
+}
+
+// ─── SKILL BOX TOOLTIP TEXT BUILDER ──────────────────────────────────────────
+function buildTooltipText(skill, level) {
+    const idx  = level > 0 ? level - 1 : 0;
+    const nameArr = (currentLang !== 'en' && skill['names_by_level_' + currentLang]) || skill.names_by_level;
+    const name        = (nameArr[idx] || nameArr[0] || skill.name || '');
+    const desc        = (skill.descs_by_level[idx]         || skill.descs_by_level[0]         || '');
+    const targetDescArr = (currentLang !== 'en' && skill['target_desc_by_level_' + currentLang]) || skill.target_desc_by_level;
+    const targetDesc  = (targetDescArr[idx]                || targetDescArr[0]                || skill.target_desc || '');
+    const range       = (skill.ranges_by_level[idx]        ?? skill.ranges_by_level[0]        ?? 0);
+    const duration    = (skill.durations_by_level[idx]     ?? skill.durations_by_level[0]     ?? 0);
+    const lp          = (skill.lp_by_level[idx]            ?? skill.lp_by_level[0]            ?? 0);
+    const ep          = (skill.ep_by_level[idx]            ?? skill.ep_by_level[0]            ?? 0);
+    const trainLevel  = (skill.train_level_by_level?.[idx] ?? skill.train_level_by_level?.[0] ?? 0);
+    const rawE1 = (skill.effect1_raw_by_level?.[idx] || skill.effect1_raw_by_level?.[0] || null);
+    const rawE2 = (skill.effect2_raw_by_level?.[idx] || skill.effect2_raw_by_level?.[0] || null);
+    const effect1 = currentLang === 'en'
+        ? (skill.effect1_labels_by_level[idx] || skill.effect1_labels_by_level[0] || '')
+        : formatEffectForLang(rawE1, currentLang);
+    const effect2 = currentLang === 'en'
+        ? (skill.effect2_labels_by_level[idx] || skill.effect2_labels_by_level[0] || '')
+        : formatEffectForLang(rawE2, currentLang);
+    const cooldowns   = skill.cooldowns_by_level || [];
+
+    let text = desc ? `${name} - ${desc}` : name;
+    if (skill.require_item_name) text += `|${getT('tRequires')}: ${skill.require_item_name}`;
+    if (trainLevel > 0)   text += `|${getT('tReqLevel')}: ${trainLevel}`;
+    if (targetDesc)   text += `|${getT('tTarget')}: ${targetDesc}`;
+    if (range > 0)    text += `|${getT('tRange')}: ${range} m`;
+    if (duration > 0) text += `|${getT('tDuration')}: ${duration} s`;
+    if (lp > 0)       text += `|${getT('tLp')}: ${lp}`;
+    if (ep > 0)       text += `|${getT('tEp')}: ${ep}`;
+    if (effect1)      text += `|Effect: ${effect1}`;
+    if (effect2)      text += `|Effect: ${effect2}`;
+    if (level > 0 && cooldowns.length >= level) text += `|${getT('tCooldown')}: ${cooldowns[level - 1]} s`;
+    else if (cooldowns.length > 0)              text += `|${getT('tCooldown')}: ${cooldowns[0]} s`;
+    return text;
+}
+
+// ─── SKILL BOX BUILDER ───────────────────────────────────────────────────────
+function buildSkillBox(skill, rpEffectsMap, initialLevel, initialEnch) {
+    const level       = initialLevel || 0;
+    const ench        = initialEnch  || 'none';
+    const requireSp   = skill.require_sp;
+    const selfTrain   = skill.self_train;
+    const isFreeLevel = (selfTrain === 0 || requireSp === 0);
+    const isPassive   = (skill.use_type === 0 || skill.use_type === 2);
+
+    const box = document.createElement('div');
+    box.className = 'skill-box';
+    box.dataset.skill      = skill.name;
+    box.dataset.skillIdx   = skill.idx;
+    box.dataset.max        = skill.max;
+    box.dataset.type       = skill.skill_type ?? '';
+    box.dataset.useType    = skill.use_type    ?? '';
+    box.dataset.damageType = skill.damage_type ?? '';
+    box.dataset.requireSp  = requireSp ?? '';
+    box.dataset.selfTrain  = selfTrain  ?? '';
+    box.dataset.gridRow    = skill.row;
+    box.dataset.gridCol    = skill.col;
+    box.dataset.requiredSkill = JSON.stringify(skill.required_skill ?? null);
+    box.dataset.trainLevels   = JSON.stringify(skill.train_level_by_level || []);
+    box.style.cssText = `--grid-row:${skill.row + 1};--grid-col:${skill.col + 1}`;
+
+    const color = getIconBackColor(skill.use_type, skill.damage_type, skill.skill_type);
+    box.dataset.color = color;
+
+    // RP entries for this skill
+    const rpSlots = [
+        skill.RP_Effect_1, skill.RP_Effect_2, skill.RP_Effect_3,
+        skill.RP_Effect_4, skill.RP_Effect_5, skill.RP_Effect_6
+    ];
+
+    // Build enchantment menu HTML
+    let enchOptHTML = '';
+    rpSlots.forEach((effId, i) => {
+        const eff = effId != null ? rpEffectsMap[String(effId)] : null;
+        const rpKey = 'rp' + (i + 1);
+        const iconActive = eff ? `static/ui/rp/${eff.icon_active}` : '';
+        const title = eff ? eff.label : `RP ${i + 1}`;
+        if (eff) {
+            enchOptHTML += `<div class="enchantment-option" data-enchantment="${rpKey}" data-icon-active="${iconActive}" title="${title}"><img src="static/ui/rp/${eff.icon}" alt="${title}" style="width:38px;height:38px;object-fit:contain;display:block;"></div>`;
+        } else {
+            enchOptHTML += `<div class="enchantment-option" data-enchantment="${rpKey}" data-icon-active="" title="${title}"><span class="rp-empty-slot"></span></div>`;
+        }
+    });
+    enchOptHTML += `<div class="enchantment-option enchantment-deselect" data-enchantment="none" data-icon-active="" title="Remove enchantment">&#x2715;</div>`;
+
+    const showPlusMinus = !(isFreeLevel && skill.max === 1);
+
+    box.innerHTML = `
+        <div class="skill-card" data-tooltip="" data-target-desc="${skill.target_desc || ''}">
+            <div class="card-body">
+                <div class="card-icon-col">
+                    <div class="card-icon">
+                        <img src="static/Skill Icons/${skill.icon}" onerror="this.style.display='none'">
+                    </div>
+                    <div style="display:flex;align-items:baseline;gap:2px;">
+                        <span class="skill-current-level">${isFreeLevel ? 1 : 0}</span>
+                        <span class="skill-max-level">/ ${skill.max}</span>
+                    </div>
+                </div>
+                <div class="card-side-btns">
+                    <div style="position:relative;">
+                        <button class="btn-enchantment" title="Current: None">
+                            <img src="${RP_BTN_DEFAULT}" alt="RP">
+                        </button>
+                        <div class="enchantment-menu">
+                            <div class="enchantment-grid">${enchOptHTML}</div>
+                        </div>
+                    </div>
+                    ${showPlusMinus ? `
+                    <button class="btn-skill minus"><img src="static/ui/minus-icon_active.png" alt="−"></button>
+                    <button class="btn-skill plus"><img src="static/ui/plus-icon_active.png" alt="+"></button>
+                    ` : ''}
+                </div>
+            </div>
+        </div>`;
+
+    attachSkillBoxListeners(box, skill, rpEffectsMap, level, ench);
+    return box;
+}
+
+function buildArrowCell(arrow) {
+    const cell = document.createElement('div');
+    cell.className = 'skill-arrow-cell';
+    cell.style.cssText = `--grid-row:${arrow.row + 1};--grid-col:${arrow.col + 1}`;
+    if (arrow.type === 'down') {
+        cell.dataset.srcRow = arrow.row - 1;
+        cell.dataset.srcCol = arrow.col;
+        cell.innerHTML = `<div class="skill-arrow down"></div><div class="skill-arrow tip"></div>`;
+    } else {
+        cell.dataset.srcRow = arrow.row;
+        cell.dataset.srcCol = arrow.col - 1;
+        cell.innerHTML = `<div class="skill-arrow right-begin"></div><div class="skill-arrow right-hook"></div><div class="skill-arrow tip"></div>`;
+    }
+    return cell;
+}
+
+// ─── SKILL BOX LISTENERS ─────────────────────────────────────────────────────
+function attachSkillBoxListeners(box, skill, rpEffectsMap, initialLevel, initialEnch) {
+    const skillIdx    = skill.idx;
+    const maxLevel    = !currentSubclassName && skill.max > 29 ? 29 : skill.max;
+    const requireSp   = skill.require_sp;
+    const selfTrain   = skill.self_train;
+    const isFreeLevel = (selfTrain === 0 || requireSp === 0);
+    const isPassive   = (skill.use_type === 0 || skill.use_type === 2);
+
+    const levelDisplay = box.querySelector('.skill-current-level');
+    const skillCard    = box.querySelector('.skill-card');
+    const minusBtn     = box.querySelector('.btn-skill.minus');
+    const plusBtn      = box.querySelector('.btn-skill.plus');
+    const enchantBtn   = box.querySelector('.btn-enchantment');
+    const enchantMenu  = box.querySelector('.enchantment-menu');
+    // Portal menu to <body> so it escapes any zoom/overflow context on mobile
+    if (enchantMenu) document.body.appendChild(enchantMenu);
+
+    const rpByLevel = skill.rp_by_level || [];
+
+    // Initialise state
+    if (isFreeLevel) {
+        skillLevels[skillIdx] = Math.max(skillLevels[skillIdx] || 0, 1);
+        if (initialLevel > 1) skillLevels[skillIdx] = initialLevel;
+    } else {
+        skillLevels[skillIdx] = initialLevel || skillLevels[skillIdx] || 0;
+    }
+    skillEnchantments[skillIdx] = initialEnch || skillEnchantments[skillIdx] || 'none';
+
+    levelDisplay.textContent = skillLevels[skillIdx] || (isFreeLevel ? 1 : 0);
+    const curLv = skillLevels[skillIdx] || 0;
+    if (curLv > 0) { box.classList.add('active'); box.classList.remove('inactive'); }
+    else           { box.classList.add('inactive'); box.classList.remove('active'); }
+
+    // Hide RP for passive/buff
+    if (enchantBtn && isPassive) {
+        enchantBtn.style.visibility   = 'hidden';
+        enchantBtn.style.pointerEvents = 'none';
+        if (!plusBtn) {
+            // hide completely if also no +/- (passive with max=1)
+        }
+    }
+
+    // ── Tooltip ──────────────────────────────────────────────────────────────
+    skillCard._skill = skill;  // stored so rebuildAllTooltips() can refresh it
+    function refreshTooltip() {
+        const lv = skillLevels[skillIdx] || 0;
+        skillCard.dataset.tooltip = buildTooltipText(skill, lv);
+        if (skillCard._tooltipHovered) {
+            tooltipEl.innerHTML = renderTooltipHTML(skillCard.dataset.tooltip);
+        }
+    }
+    refreshTooltip();
+
+    // ── Dependencies ─────────────────────────────────────────────────────────
+    let requiredSkills = [];
+    try {
+        const rawReq = box.dataset.requiredSkill;
+        if (rawReq && rawReq !== 'null') {
+            const parsed = JSON.parse(rawReq);
+            requiredSkills = Array.isArray(parsed) ? parsed : [parsed];
+        }
+    } catch (e) { requiredSkills = []; }
+
+    function checkDeps() {
+        const missing = requiredSkills.filter(s => (skillLevels[s] || 0) < 1);
+        return missing.length === 0 ? { met: true } : { met: false, missing };
+    }
+    function updateDepStatus() {
+        const dc = checkDeps();
+        if (!dc.met) {
+            if (plusBtn) { plusBtn.disabled = true; plusBtn.classList.add('capped'); plusBtn.style.cursor = 'not-allowed'; plusBtn.title = `${getT('tRequires')}: ${dc.missing.join(', ')}`; }
+            box.classList.add('dependency-locked');
+        } else {
+            if (plusBtn) { plusBtn.disabled = false; plusBtn.classList.remove('capped'); plusBtn.style.cursor = ''; plusBtn.title = ''; }
+            box.classList.remove('dependency-locked');
+        }
+    }
+    updateDepStatus();
+
+    // ── RP availability ───────────────────────────────────────────────────────
+    function updateRPAvailability() {
+        if (!enchantMenu) return;
+        const curLv = skillLevels[skillIdx] || 0;
+        const levelData = curLv > 0 ? (rpByLevel[curLv - 1] || []) : [];
+        const rpEffects = { rp1: levelData[0]??null, rp2: levelData[1]??null, rp3: levelData[2]??null, rp4: levelData[3]??null, rp5: levelData[4]??null, rp6: levelData[5]??null };
+        enchantMenu.querySelectorAll('.enchantment-option').forEach(opt => {
+            const rpType = opt.dataset.enchantment;
+            if (rpType === 'none' || rpEffects[rpType] !== null) {
+                opt.classList.remove('disabled'); opt.style.pointerEvents = 'auto';
+            } else {
+                opt.classList.add('disabled'); opt.style.pointerEvents = 'none';
+                if (skillEnchantments[skillIdx] === rpType) {
+                    skillEnchantments[skillIdx] = 'none';
+                    if (enchantBtn) { enchantBtn.title = 'Current: None'; const img = enchantBtn.querySelector('img'); if (img) img.src = RP_BTN_DEFAULT; }
+                }
+            }
+        });
+    }
+    updateRPAvailability();
+
+    // ── +/- buttons ───────────────────────────────────────────────────────────
+    if (minusBtn) {
+        minusBtn.addEventListener('click', () => {
+            const minLevel = isFreeLevel ? 1 : 0;
+            if ((skillLevels[skillIdx] || 0) > minLevel) {
+                skillLevels[skillIdx]--;
+                usedPoints--;
+                levelDisplay.textContent = skillLevels[skillIdx];
+                refreshTooltip();
+                if (skillLevels[skillIdx] === 0) { box.classList.remove('active'); box.classList.add('inactive'); }
+                updateRPAvailability(); updateDepStatus(); updateDisplay(); updateURL();
+            }
+        });
+    }
+    if (plusBtn) {
+        plusBtn.addEventListener('click', () => {
+            if (!checkDeps().met) return;
+            const current = skillLevels[skillIdx] || 0;
+            const trainLevels = JSON.parse(box.dataset.trainLevels || '[]');
+            const nextReqLevel = trainLevels[current] || 0;
+            if (!currentSubclassName && nextReqLevel > 29) return;
+            if (current < maxLevel && usedPoints < maxPoints) {
+                skillLevels[skillIdx] = current + 1;
+                usedPoints++;
+                levelDisplay.textContent = skillLevels[skillIdx];
+                refreshTooltip();
+                box.classList.add('active'); box.classList.remove('inactive');
+                updateRPAvailability(); updateDepStatus(); updateDisplay(); updateURL();
+            }
+        });
+    }
+
+    // ── Enchantment menu ──────────────────────────────────────────────────────
+    if (enchantBtn && enchantMenu && !isPassive) {
+        function syncBtnIcon() {
+            const cur = skillEnchantments[skillIdx] || 'none';
+            const btnImg = enchantBtn.querySelector('img');
+            if (!btnImg) return;
+            if (cur === 'none') { btnImg.src = RP_BTN_DEFAULT; return; }
+            const selOpt = enchantMenu.querySelector(`[data-enchantment="${cur}"]`);
+            btnImg.src = (selOpt && selOpt.dataset.iconActive) || RP_BTN_DEFAULT;
+        }
+        function syncOptionIcons() {
+            const cur = skillEnchantments[skillIdx] || 'none';
+            enchantMenu.querySelectorAll('.enchantment-option').forEach(opt => {
+                const img = opt.querySelector('img');
+                if (!img) return;
+                if (!img.dataset.iconDefault) img.dataset.iconDefault = img.src;
+                img.src = (opt.dataset.enchantment === cur && cur !== 'none') ? (opt.dataset.iconActive || img.dataset.iconDefault) : img.dataset.iconDefault;
+            });
+        }
+        // Mark pre-selected RP
+        enchantMenu.querySelectorAll('.enchantment-option').forEach(opt => {
+            if (opt.dataset.enchantment === (skillEnchantments[skillIdx] || 'none')) opt.classList.add('active');
+        });
+        enchantBtn.title = skillEnchantments[skillIdx] !== 'none'
+            ? `Current: RP Tier ${skillEnchantments[skillIdx].slice(2)}` : 'Current: None';
+
+        enchantBtn.addEventListener('click', e => {
+            e.stopPropagation(); hideTooltip();
+            const wasShown = enchantMenu.classList.contains('show');
+            enchantMenu.classList.toggle('show');
+            if (!wasShown) positionEnchantMenu(enchantBtn, enchantMenu);
+        });
+        enchantMenu.querySelectorAll('.enchantment-option').forEach(opt => {
+            opt.addEventListener('click', e => {
+                if (opt.classList.contains('disabled')) { e.preventDefault(); return; }
+                const rpType = opt.dataset.enchantment;
+                skillEnchantments[skillIdx] = rpType;
+                enchantBtn.title = rpType !== 'none' ? `Current: RP Tier ${rpType.slice(2)}` : 'Current: None';
+                syncBtnIcon(); syncOptionIcons();
+                enchantMenu.classList.remove('show');
+                enchantMenu.querySelectorAll('.enchantment-option').forEach(o => o.classList.remove('active'));
+                opt.classList.add('active');
+                updateURL();
+            });
+        });
+        syncBtnIcon(); syncOptionIcons();
+    }
+
+    attachTooltipListeners(skillCard);
+}
+
+// ─── RENDER PICKER ────────────────────────────────────────────────────────────
+function renderPicker(allClasses, selectedClassName, selectedSubclassName) {
+    const cols = document.getElementById('picker-cols');
+    cols.innerHTML = '';
+    for (const cls of allClasses) {
+        const sub0 = cls.subclasses[0] || null;
+        const sub1 = cls.subclasses[1] || null;
+
+        const col = document.createElement('div');
+        col.className = 'unified-col';
+
+        function makePickerItem(name, icon, isClass, extraClass, dataAttrs) {
+            const item = document.createElement('div');
+            item.className = 'picker-item' + (extraClass ? ' ' + extraClass : '');
+            Object.entries(dataAttrs).forEach(([k, v]) => item.dataset[k] = v);
+            item.title = name;
+            const imgSrc = icon ? `static/class icons/${icon}` : 'static/ui/icon_back_grey.png';
+            item.innerHTML = `<img src="${imgSrc}" alt="${name}" onerror="this.style.opacity='0.3'"><span>${name}</span>`;
+            return item;
+        }
+
+        const clsItem = makePickerItem(cls.name, cls.class_icon, true,
+            cls.name === selectedClassName ? 'selected' : '',
+            { className: cls.name });
+        clsItem.addEventListener('click', () => {
+            if (cls.name !== selectedClass) navigateToClass(cls.name, '');
+        });
+        col.appendChild(clsItem);
+
+        const sep = document.createElement('div'); sep.className = 'unified-sub-sep'; col.appendChild(sep);
+
+        [sub0, sub1].forEach(sub => {
+            if (sub) {
+                const subItem = makePickerItem(sub.name, sub.class_icon, false,
+                    'subclass-item' + (sub.name === selectedSubclassName ? ' selected' : ''),
+                    { subclassId: sub.idx, subclassName: sub.name, parentClass: cls.name, maxPoints: sub.max_points });
+                subItem.addEventListener('click', () => handleSubclassClick(subItem, sub, cls));
+                col.appendChild(subItem);
+            } else {
+                const empty = document.createElement('div'); empty.className = 'unified-empty'; col.appendChild(empty);
+            }
+        });
+        cols.appendChild(col);
+    }
+}
+
+function handleSubclassClick(item, sub, cls) {
+    // Different main class → navigate
+    if (cls.name !== selectedClass) { navigateToClass(cls.name, sub.name); return; }
+    // Toggle off
+    if (item.classList.contains('selected')) {
+        item.classList.remove('selected');
+        currentSubclassName = '';
+        maxPoints = 28;
+        document.getElementById('subclass-skills-container').innerHTML = '';
+        syncSkillsContainerAlign();
+        recalcUsedPoints(); updateDisplay(); updateURL();
+        return;
+    }
+    // Switch subclass
+    document.querySelectorAll('#class-picker .subclass-item').forEach(i => i.classList.remove('selected'));
+    item.classList.add('selected');
+    currentSubclassName = sub.name;
+    maxPoints = 74;
+
+    const scData = APP_DATA.classes[selectedClass].subclasses.find(s => s.name === sub.name);
+    if (scData) renderSubclass(scData, {});
+    syncSkillsContainerAlign();
+    recalcUsedPoints(); updateDisplay(); updateURL();
+}
+
+function navigateToClass(className, subclassName) {
+    let url = `?class=${encodeURIComponent(className)}`;
+    if (subclassName) url += `&subclass=${encodeURIComponent(subclassName)}`;
+    window.location.href = url;
+}
+
+function syncSkillsContainerAlign() {
+    document.getElementById('skills-container').classList.toggle('no-subclass', !currentSubclassName);
+}
+
+// ─── MOBILE DROPDOWNS ────────────────────────────────────────────────────────
+function mDdToggle(ddEl, e) {
+    e.stopPropagation();
+    const wasOpen = ddEl.classList.contains('open');
+    // close all
+    document.querySelectorAll('.m-dd.open').forEach(d => d.classList.remove('open'));
+    if (wasOpen) return;
+    ddEl.classList.add('open');
+    // position the list under the trigger using fixed coords
+    const list    = ddEl.querySelector('.m-dd-list');
+    const trigger = ddEl.querySelector('.m-dd-trigger');
+    const rect    = trigger.getBoundingClientRect();
+    list.style.top   = (rect.bottom + 4) + 'px';
+    list.style.left  = rect.left + 'px';
+    list.style.width = rect.width + 'px';
+}
+document.addEventListener('click', () => document.querySelectorAll('.m-dd.open').forEach(d => d.classList.remove('open')));
+
+function mDdSetTrigger(iconEl, labelEl, name, iconSrc) {
+    labelEl.textContent = name || '—';
+    if (iconSrc) { iconEl.src = iconSrc; iconEl.style.display = ''; }
+    else          { iconEl.style.display = 'none'; }
+}
+
+function populateMobileDropdowns() {
+    if (!APP_DATA) return;
+    const classList  = document.getElementById('mobile-class-list');
+    const classDd    = document.getElementById('mobile-class-dd');
+    const classIcon  = document.getElementById('mobile-class-icon');
+    const classLabel = document.getElementById('mobile-class-label');
+
+    classList.innerHTML = '';
+    for (const cls of APP_DATA.all_classes) {
+        const iconSrc = cls.class_icon ? `static/class icons/${cls.class_icon}` : '';
+        const item = document.createElement('div');
+        item.className = 'm-dd-item' + (cls.name === selectedClass ? ' selected' : '');
+        item.innerHTML = iconSrc
+            ? `<img src="${iconSrc}" alt=""><span>${cls.name}</span>`
+            : `<span>${cls.name}</span>`;
+        item.addEventListener('click', e => {
+            e.stopPropagation();
+            classDd.classList.remove('open');
+            if (cls.name !== selectedClass) navigateToClass(cls.name, '');
+        });
+        classList.appendChild(item);
+    }
+
+    // set trigger label
+    const curCls = APP_DATA.all_classes.find(c => c.name === selectedClass);
+    const curIconSrc = curCls?.class_icon ? `static/class icons/${curCls.class_icon}` : '';
+    mDdSetTrigger(classIcon, classLabel, selectedClass || 'Class', curIconSrc);
+    document.getElementById('mobile-class-trigger').onclick = e => mDdToggle(classDd, e);
+
+    populateMobileSubclassDropdown();
+}
+
+function populateMobileSubclassDropdown() {
+    if (!APP_DATA) return;
+    const subList  = document.getElementById('mobile-sub-list');
+    const subDd    = document.getElementById('mobile-sub-dd');
+    const cls      = APP_DATA.classes[selectedClass];
+
+    if (!cls || !cls.subclasses.length) { subDd.style.display = 'none'; return; }
+    subDd.style.display = '';
+    subList.innerHTML = '';
+
+    // helper: always reads fresh DOM refs so nothing goes stale
+    function setSubTrigger(name, iconSrc) {
+        mDdSetTrigger(
+            document.getElementById('mobile-sub-icon'),
+            document.getElementById('mobile-sub-label'),
+            name, iconSrc
+        );
+    }
+
+    // "None" option
+    const noneItem = document.createElement('div');
+    noneItem.className = 'm-dd-item' + (!currentSubclassName ? ' selected' : '');
+    noneItem.innerHTML = '<span style="color:var(--text-dim)">— No Subclass —</span>';
+    noneItem.addEventListener('click', e => {
+        e.stopPropagation(); subDd.classList.remove('open');
+        if (!currentSubclassName) return;
+        document.querySelectorAll('#class-picker .subclass-item').forEach(i => i.classList.remove('selected'));
+        currentSubclassName = ''; maxPoints = 28;
+        document.getElementById('subclass-skills-container').innerHTML = '';
+        syncSkillsContainerAlign(); recalcUsedPoints(); updateDisplay(); updateURL();
+        setSubTrigger('Subclass', '');
+        subList.querySelectorAll('.m-dd-item').forEach(it => it.classList.remove('selected'));
+        noneItem.classList.add('selected');
+    });
+    subList.appendChild(noneItem);
+
+    for (const sc of cls.subclasses) {
+        const iconSrc = sc.class_icon ? `static/class icons/${sc.class_icon}` : '';
+        const item = document.createElement('div');
+        item.className = 'm-dd-item' + (sc.name === currentSubclassName ? ' selected' : '');
+        item.innerHTML = iconSrc
+            ? `<img src="${iconSrc}" alt=""><span>${sc.name}</span>`
+            : `<span>${sc.name}</span>`;
+        item.addEventListener('click', e => {
+            e.stopPropagation(); subDd.classList.remove('open');
+            if (sc.name === currentSubclassName) return;
+            document.querySelectorAll('#class-picker .subclass-item').forEach(i => i.classList.remove('selected'));
+            const matchItem = document.querySelector(`#class-picker .subclass-item[data-subclass-name="${sc.name}"]`);
+            if (matchItem) matchItem.classList.add('selected');
+            currentSubclassName = sc.name; maxPoints = 74;
+            renderSubclass(APP_DATA.classes[selectedClass].subclasses.find(s => s.name === sc.name), {});
+            syncSkillsContainerAlign(); recalcUsedPoints(); updateDisplay(); updateURL();
+            setSubTrigger(sc.name, iconSrc);
+            subList.querySelectorAll('.m-dd-item').forEach(it => it.classList.remove('selected'));
+            item.classList.add('selected'); noneItem.classList.remove('selected');
+        });
+        subList.appendChild(item);
+    }
+
+    // set trigger label to current selection
+    const curSc = cls.subclasses.find(s => s.name === currentSubclassName);
+    const curIconSrc = curSc?.class_icon ? `static/class icons/${curSc.class_icon}` : '';
+    setSubTrigger(currentSubclassName || 'Subclass', curIconSrc);
+
+    // attach trigger click (use onclick to avoid stacking listeners)
+    document.getElementById('mobile-sub-trigger').onclick = e => mDdToggle(subDd, e);
+}
+
+
+// ─── RENDER SKILL GRID ────────────────────────────────────────────────────────
+function renderSkillGrid(gridEl, skills, arrows, rpEffectsMap, allocated, enchantments) {
+    gridEl.innerHTML = '';
+    for (const skill of skills) {
+        const box = buildSkillBox(skill, rpEffectsMap, allocated[skill.name] || 0, enchantments[skill.name] || 'none');
+        gridEl.appendChild(box);
+    }
+    for (const arrow of arrows) {
+        gridEl.appendChild(buildArrowCell(arrow));
+    }
+}
+
+function renderSubclass(scData, enchantments) {
+    const container = document.getElementById('subclass-skills-container');
+    container.innerHTML = '';
+    const group = document.createElement('div');
+    group.className = 'subclass-group';
+    group.dataset.subclassId = scData.idx;
+    group.innerHTML = `<h3>${scData.name}</h3>`;
+    const grid = document.createElement('div');
+    grid.className = 'subclass-grid';
+    group.appendChild(grid);
+    container.appendChild(group);
+
+    const allocated  = {};
+    const enchMap    = {};
+    // skillLevels/skillEnchantments are already populated; just pass names→values
+    for (const skill of scData.skills) {
+        allocated[skill.name]  = skillLevels[skill.idx]       || 0;
+        enchMap[skill.name]    = skillEnchantments[skill.idx]  || 'none';
+    }
+    renderSkillGrid(grid, scData.skills, scData.arrows || [], APP_DATA.rp_effects_map, allocated, enchMap);
+}
+
+// ─── MAIN INIT ────────────────────────────────────────────────────────────────
+async function init() {
+    try {
+        await loadData();
+    } catch (e) {
+        document.getElementById('loading-msg').innerHTML =
+            `<strong style="color:#c84040">Error:</strong> ${e.message}<br><br>` +
+            `Run <code>python generate_app_data.py</code> then serve with <code>python -m http.server 8000</code>`;
+        return;
+    }
+
+    const allClasses = APP_DATA.all_classes;
+    const classNames = allClasses.map(c => c.name);
+
+    // Read URL params
+    let urlClass    = getURLParam('class')    || (classNames[0] || '');
+    let urlSubclass = getURLParam('subclass') || '';
+    let buildStr    = getURLParam('build')    || '';
+
+    if (!APP_DATA.classes[urlClass]) urlClass = classNames[0] || '';
+    selectedClass = urlClass;
+
+    const classData = APP_DATA.classes[selectedClass];
+
+    // Parse build string
+    let allocated   = {};
+    let enchantments = {};
+    if (buildStr) {
+        if (buildStr.includes('|')) {
+            const parsed = parseMinifiedBuild(buildStr, selectedClass);
+            allocated    = parsed.allocated;
+            enchantments = parsed.enchantments;
+            if (parsed.subclassFromUrl) urlSubclass = parsed.subclassFromUrl;
+        } else {
+            // legacy base64 JSON
+            try {
+                const cfg = JSON.parse(atob(buildStr));
+                allocated    = cfg.skills       || {};
+                enchantments = cfg.enchantments || {};
+                if (cfg.subclass) urlSubclass = cfg.subclass;
+            } catch {}
+        }
+    }
+
+    // Pre-populate skillLevels/skillEnchantments for ALL skills (main + all subclasses)
+    for (const skill of classData.skills) {
+        skillLevels[skill.idx]       = allocated[skill.name]    || 0;
+        skillEnchantments[skill.idx] = enchantments[skill.name] || 'none';
+    }
+    for (const sc of classData.subclasses) {
+        for (const skill of sc.skills) {
+            skillLevels[skill.idx]       = allocated[skill.name]    || 0;
+            skillEnchantments[skill.idx] = enchantments[skill.name] || 'none';
+        }
+    }
+
+    // Render picker
+    renderPicker(allClasses, selectedClass, urlSubclass);
+
+    // Render main skill grid
+    document.getElementById('main-class-title').textContent = selectedClass + getT('skillsSuffix');
+    const mainGrid = document.getElementById('skills-grid');
+    renderSkillGrid(mainGrid, classData.skills, classData.arrows || [], APP_DATA.rp_effects_map, allocated, enchantments);
+
+    // Render subclass if selected
+    if (urlSubclass) {
+        const scData = classData.subclasses.find(s => s.name === urlSubclass);
+        if (scData) {
+            currentSubclassName = urlSubclass;
+            maxPoints = 74;
+            renderSubclass(scData, enchantments);
+        }
+    } else {
+        maxPoints = 28;
+    }
+    syncSkillsContainerAlign();
+    recalcUsedPoints();
+    updateDisplay();
+    updateURL();
+
+    document.getElementById('loading-msg').style.display = 'none';
+    document.getElementById('app').style.display = '';
+    populateMobileDropdowns();
+    initBuildsPanel();
+    applyLang();
+}
+function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(str) { return String(str).replace(/'/g,"&#39;").replace(/"/g,"&quot;"); }
+function getSavedBuilds() { try { return JSON.parse(localStorage.getItem(SAVES_KEY)||'[]'); } catch { return []; } }
+function setSavedBuilds(arr) { localStorage.setItem(SAVES_KEY, JSON.stringify(arr)); }
+
+function renderPresets() {
+    const list = document.getElementById('presets-list');
+    if (typeof PRESET_BUILDS === 'undefined' || !PRESET_BUILDS.length) {
+        list.innerHTML = `<div class="builds-empty">${getT('noPresets')}<br>Add entries to <code>static/js/preset-builds.js</code>.</div>`;
+        return;
+    }
+    list.innerHTML = PRESET_BUILDS.map(b => `
+        <div class="build-card">
+            <div class="build-card-top"><span class="build-card-name">${escHtml(b.name)}</span><span class="build-card-class">${escHtml(b.className)}</span></div>
+            ${b.description ? `<div class="build-card-desc">${escHtml(b.description)}</div>` : ''}
+            <div class="build-card-actions"><button class="btn-load-build" data-url="${escAttr(b.url)}">${escHtml(getT('loadBtn'))}</button></div>
+        </div>`).join('');
+    list.querySelectorAll('.btn-load-build').forEach(btn => {
+        btn.addEventListener('click', () => { window.location.href = btn.dataset.url; });
+    });
+}
+function renderSaved() {
+    const list = document.getElementById('saved-list');
+    const saves = getSavedBuilds();
+    if (!saves.length) { list.innerHTML = `<div class="builds-empty">${getT('noSaved')}</div>`; return; }
+    list.innerHTML = saves.map((b, i) => `
+        <div class="build-card">
+            <div class="build-card-top"><span class="build-card-name">${escHtml(b.name)}</span><span class="build-card-class">${escHtml(b.className)}</span></div>
+            <div class="build-card-actions">
+                <span class="build-card-date">${escHtml(b.savedAt)}</span>
+                <button class="btn-load-build" data-url="${escAttr(b.url)}">${escHtml(getT('loadBtn'))}</button>
+                <button class="btn-del-build" data-index="${i}" title="Delete">&#x2715;</button>
+            </div>
+        </div>`).join('');
+    list.querySelectorAll('.btn-load-build').forEach(btn => {
+        btn.addEventListener('click', () => { window.location.href = btn.dataset.url; });
+    });
+    list.querySelectorAll('.btn-del-build').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const s = getSavedBuilds();
+            s.splice(parseInt(btn.dataset.index), 1);
+            setSavedBuilds(s);
+            renderSaved();
+        });
+    });
+}
+
+function initBuildsPanel() {
+    document.getElementById('builds-btn').addEventListener('click', () => {
+        document.getElementById('builds-drawer').classList.add('open');
+        document.getElementById('builds-overlay').classList.add('open');
+        renderPresets(); renderSaved();
+    });
+    function closeDrawer() {
+        document.getElementById('builds-drawer').classList.remove('open');
+        document.getElementById('builds-overlay').classList.remove('open');
+    }
+    document.getElementById('builds-close').addEventListener('click', closeDrawer);
+    document.getElementById('builds-overlay').addEventListener('click', closeDrawer);
+    document.querySelectorAll('.builds-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const t = tab.dataset.tab;
+            document.querySelectorAll('.builds-tab').forEach(x => x.classList.toggle('active', x.dataset.tab === t));
+            document.getElementById('tab-presets').classList.toggle('active', t === 'presets');
+            document.getElementById('tab-saved').classList.toggle('active', t === 'saved');
+            if (t === 'saved') renderSaved();
+        });
+    });
+    document.getElementById('save-build-btn').addEventListener('click', () => {
+        const nameInput = document.getElementById('save-build-name');
+        const name = nameInput.value.trim();
+        if (!name) { nameInput.focus(); return; }
+        updateURL();
+        const url = document.getElementById('build-url').value.replace(window.location.origin, '');
+        const saves = getSavedBuilds();
+        saves.unshift({ name, className: currentSubclassName || selectedClass, url, savedAt: new Date().toLocaleDateString() });
+        setSavedBuilds(saves);
+        nameInput.value = '';
+        renderSaved();
+    });
+    document.getElementById('save-build-name').addEventListener('keydown', e => {
+        if (e.key === 'Enter') document.getElementById('save-build-btn').click();
+    });
+}
+
+// ─── LANGUAGE ─────────────────────────────────────────────────────────────────
+function applyLang() {
+    const s = id => document.getElementById(id);
+    const setText = (id, key) => { const el = s(id); if (el) el.textContent = getT(key); };
+    setText('hdr-maxlv', 'maxLv');
+    setText('hdr-splabel', 'spLeft');
+    setText('hdr-share', 'shareBtn');
+    setText('hdr-reset', 'resetBtn');
+    setText('hdr-builds', 'buildsBtn');
+    setText('drawer-title', 'buildsTitle');
+    setText('tab-btn-presets', 'presetsTab');
+    setText('tab-btn-saved', 'savedTab');
+    setText('save-build-btn', 'saveBtn');
+    setText('picker-lbl-class', 'classLabel');
+    setText('picker-lbl-sub', 'subclassLabel');
+    setText('loading-msg', 'loadingMsg');
+    const inp = s('save-build-name');
+    if (inp) inp.placeholder = getT('savePlaceholder');
+    if (selectedClass) {
+        const titleEl = s('main-class-title');
+        if (titleEl) titleEl.textContent = selectedClass + getT('skillsSuffix');
+    }
+    const sel = s('lang-select');
+    if (sel) sel.value = currentLang;
+}
+
+function rebuildAllTooltips() {
+    document.querySelectorAll('.skill-card').forEach(card => {
+        if (card._skill) {
+            const lv = skillLevels[card._skill.idx] || 0;
+            card.dataset.tooltip = buildTooltipText(card._skill, lv);
+            if (card._tooltipHovered) {
+                tooltipEl.innerHTML = renderTooltipHTML(card.dataset.tooltip);
+            }
+        }
+    });
+}
+
+document.getElementById('lang-select').addEventListener('change', e => {
+    currentLang = e.target.value;
+    localStorage.setItem('dbo_lang', currentLang);
+    applyLang();
+    rebuildAllTooltips();
+    renderPresets();
+    renderSaved();
+});
+
+// ─── HEADER BUTTONS ──────────────────────────────────────────────────────────
+document.getElementById('share-btn').addEventListener('click', () => {
+    const inp = document.getElementById('build-url');
+    inp.select();
+    document.execCommand('copy');
+    const btn = document.getElementById('share-btn');
+    const orig = btn.innerHTML;
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.innerHTML = orig, 2000);
+});
+document.getElementById('reset-btn').addEventListener('click', () => {
+    if (confirm(getT('resetConfirm'))) {
+        let url = `?class=${encodeURIComponent(selectedClass)}`;
+        if (currentSubclassName) url += `&subclass=${encodeURIComponent(currentSubclassName)}`;
+        window.location.href = url;
+    }
+});
+
+// Close enchantment menus on outside click or scroll
+document.addEventListener('click', e => {
+    if (!e.target.closest('.btn-enchantment') && !e.target.closest('.enchantment-menu')) {
+        document.querySelectorAll('.enchantment-menu').forEach(m => m.classList.remove('show'));
+    }
+});
+document.addEventListener('scroll', () => {
+    document.querySelectorAll('.enchantment-menu.show').forEach(m => m.classList.remove('show'));
+}, { passive: true, capture: true });
+
+function positionEnchantMenu(btn, menu) {
+    const GAP = 6;
+    // Measure at (0,0) first so it doesn't affect layout
+    menu.style.top  = '0px';
+    menu.style.left = '0px';
+    const btnRect  = btn.getBoundingClientRect();
+    const menuW    = menu.offsetWidth;
+    const menuH    = menu.offsetHeight;
+    const vw       = window.innerWidth;
+    const vh       = window.innerHeight;
+    // Prefer above, fall back to below
+    let top = btnRect.top - menuH - GAP;
+    if (top < GAP) top = btnRect.bottom + GAP;
+    top = Math.max(GAP, Math.min(top, vh - menuH - GAP));
+    // Centre on button, clamp to viewport
+    let left = btnRect.left + btnRect.width / 2 - menuW / 2;
+    left = Math.max(GAP, Math.min(left, vw - menuW - GAP));
+    menu.style.top  = top  + 'px';
+    menu.style.left = left + 'px';
+}
+
+// ─── BOOT ────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
